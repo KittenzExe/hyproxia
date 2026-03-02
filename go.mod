@@ -1,4 +1,4 @@
-module github.com/KittenzExe/Hyproxia
+module github.com/KittenzExe/hyproxia
 
 go 1.25.0
 
