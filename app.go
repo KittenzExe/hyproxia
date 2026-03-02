@@ -176,11 +176,6 @@ func (r *Router) Route(prefix string, proxy *Proxy) {
 	r.routes[prefix] = proxy
 }
 
-// Handler returns a fasthttp.RequestHandler for the router.
-func (r *Router) Handler() fasthttp.RequestHandler {
-	return r.HandleRequest
-}
-
 // HandleRequest routes requests to the appropriate proxy.
 func (r *Router) HandleRequest(ctx *fasthttp.RequestCtx) {
 	path := string(ctx.Path())
