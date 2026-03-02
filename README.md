@@ -113,75 +113,13 @@ func main() {
 | `TCPKeepalivePeriod` | 60s | TCP keep-alive probe interval |
 
 
-## Integrations
+## Adapters
 
-### Using [fasthttp](https;//github.com/valyala/fasthttp)
+See [hyproxia/adapter](adapter/adapter.md) for building adapters to integrate hyproxia with other Go web frameworks.
 
-```go
-package main
-
-import (
-    "strings"
-
-    "github.com/KittenzExe/hyproxia"
-    "github.com/valyala/fasthttp"
-)
-
-func main() {
-    apiProxy := hyproxia.New("https://api.example.com")
-    defer apiProxy.Close()
-
-    handler := func(ctx *fasthttp.RequestCtx) {
-        path := string(ctx.Path())
-
-        switch {
-        case path == "/health":
-            ctx.SetStatusCode(200)
-            ctx.SetBodyString("OK")
-
-        case strings.HasPrefix(path, "/api/"):
-            apiProxy.HandleRequest(ctx)
-
-        default:
-            ctx.SetStatusCode(404)
-            ctx.SetBodyString("Not Found")
-        }
-    }
-
-    fasthttp.ListenAndServe(":8080", handler)
-}
-```
-
-### Using [Fiber](https://github.com/gofiber/fiber)
-
-```go
-package main
-
-import (
-    "github.com/KittenzExe/hyproxia"
-    "github.com/gofiber/fiber/v2"
-)
-
-func main() {
-    app := fiber.New()
-
-    apiProxy := hyproxia.New("https://api.example.com")
-    defer apiProxy.Close()
-
-    // Your Fiber routes
-    app.Get("/health", func(c *fiber.Ctx) error {
-        return c.SendString("OK")
-    })
-
-    // Proxy routes using All() to catch all methods
-    app.All("/api/*", func(c *fiber.Ctx) error {
-        apiProxy.HandleRequest(c.Context())
-        return nil
-    })
-
-    app.Listen(":8080")
-}
-```
+Frameworks supported:
+- [fasthttp](adapter/fasthttp)
+- [fiber](adapter/fiber)
 
 ## License
 
