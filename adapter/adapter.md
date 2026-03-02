@@ -7,6 +7,14 @@ Building adapters for hyproxia to keep your code clean and organized, without th
 Example of using the adapter with fasthttp:
 
 ```go
+package main
+
+import (
+    "github.com/KittenzExe/hyproxia"
+    fasthttpadapter "github.com/KittenzExe/hyproxia/adapter/fasthttpadapter"
+    "github.com/valyala/fasthttp"
+)
+
 func main() {
 	apiProxy := hyproxia.New("https://api.example.com")
 	defer apiProxy.Close()
@@ -38,6 +46,14 @@ func main() {
 Example of using the adapter with fiber:
 
 ```go
+package main
+
+import (
+    "github.com/KittenzExe/hyproxia"
+    fiberadapter "github.com/KittenzExe/hyproxia/adapter/fiberadapter"
+    "github.com/gofiber/fiber/v2"
+)
+
 func main() {
 	app := fiber.New()
 
