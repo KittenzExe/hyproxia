@@ -22,6 +22,18 @@ func (r *SubRouter) Route(subdomain string, proxy *Proxy) {
 	r.routes[strings.ToLower(subdomain)] = proxy
 }
 
+// RemoveRoute removes a route for the specified subdomain.
+// Returns true if the route was found and removed, false otherwise.
+func (r *SubRouter) RemoveRoute(subdomain string) bool {
+	subdomain = strings.ToLower(subdomain)
+	if proxy, ok := r.routes[subdomain]; ok {
+		proxy.Close()
+		delete(r.routes, subdomain)
+		return true
+	}
+	return false
+}
+
 // HandleRequest routes requests to the appropriate proxy based on subdomain.
 func (r *SubRouter) HandleRequest(ctx *fasthttp.RequestCtx) {
 	host := string(ctx.Host())

@@ -26,6 +26,21 @@ func (r *PathRouter) Route(prefix string, proxy *Proxy) {
 	r.routes[prefix] = proxy
 }
 
+// RemoveRoute removes a route for the specified path prefix.
+// Returns true if the route was found and removed, false otherwise.
+func (r *PathRouter) RemoveRoute(prefix string) bool {
+	// Ensure prefix starts with /
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+	if proxy, ok := r.routes[prefix]; ok {
+		proxy.Close()
+		delete(r.routes, prefix)
+		return true
+	}
+	return false
+}
+
 // HandleRequest routes requests to the appropriate proxy based on path.
 func (r *PathRouter) HandleRequest(ctx *fasthttp.RequestCtx) {
 	path := string(ctx.Path())
