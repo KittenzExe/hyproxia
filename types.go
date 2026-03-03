@@ -86,6 +86,14 @@ type Router struct {
 	routes map[string]*Proxy
 }
 
+type PathRouter struct {
+	routes map[string]*Proxy
+}
+
+type SubRouter struct {
+	routes map[string]*Proxy
+}
+
 // Proxy represents a reverse proxy instance
 type Proxy struct {
 	config  Config
