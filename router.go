@@ -52,12 +52,14 @@ func (r *Router) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 // Listen starts the router on the specified address.
 func (r *Router) Listen(addr string) error {
+	startupMessage(addr)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServe(addr)
 }
 
 // ListenTLS starts the router with TLS.
 func (r *Router) ListenTLS(addr, certFile, keyFile string) error {
+	startupMessage(addr, true)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServeTLS(addr, certFile, keyFile)
 }

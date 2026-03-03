@@ -79,6 +79,10 @@ type Config struct {
 	// TCPKeepalivePeriod is the interval between TCP keep-alive probes.
 	// Default: 60 seconds
 	TCPKeepalivePeriod time.Duration
+
+	// DisableStartupMessage disables the startup message when the proxy starts.
+	// Default: false
+	DisableStartupMessage bool
 }
 
 // Router handles multiple proxy routes

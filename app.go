@@ -15,6 +15,9 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Version of current hyproxia
+const version = "0.1.0"
+
 // New creates a new proxy instance targeting the specified URL.
 // An optional config can be provided; otherwise, the DefaultConfig is used.
 // Example:
@@ -85,6 +88,9 @@ func New(targetURL string, config ...Config) *Proxy {
 //
 //	proxy.Listen(":8080")
 func (p *Proxy) Listen(addr string) error {
+	if !p.config.DisableStartupMessage {
+		startupMessage(addr)
+	}
 	return p.server.ListenAndServe(addr)
 }
 
@@ -93,6 +99,9 @@ func (p *Proxy) Listen(addr string) error {
 //
 //	proxy.ListenWithTLS(":443", "cert.pem", "key.pem")
 func (p *Proxy) ListenWithTLS(addr, certFile, keyFile string) error {
+	if !p.config.DisableStartupMessage {
+		startupMessage(addr, true)
+	}
 	return p.server.ListenAndServeTLS(addr, certFile, keyFile)
 }
 

@@ -61,12 +61,14 @@ func (r *SubRouter) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 // Listen starts the subdomain router on the specified address.
 func (r *SubRouter) Listen(addr string) error {
+	startupMessage(addr)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServe(addr)
 }
 
 // ListenTLS starts the subdomain router with TLS.
 func (r *SubRouter) ListenTLS(addr, certFile, keyFile string) error {
+	startupMessage(addr, true)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServeTLS(addr, certFile, keyFile)
 }

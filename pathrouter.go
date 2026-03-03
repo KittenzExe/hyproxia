@@ -67,12 +67,14 @@ func (r *PathRouter) HandleRequest(ctx *fasthttp.RequestCtx) {
 
 // Listen starts the path router on the specified address.
 func (r *PathRouter) Listen(addr string) error {
+	startupMessage(addr)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServe(addr)
 }
 
 // ListenTLS starts the path router with TLS.
 func (r *PathRouter) ListenTLS(addr, certFile, keyFile string) error {
+	startupMessage(addr, true)
 	server := &fasthttp.Server{Handler: r.HandleRequest}
 	return server.ListenAndServeTLS(addr, certFile, keyFile)
 }
