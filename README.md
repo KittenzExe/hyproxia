@@ -111,6 +111,7 @@ func main() {
 | `ServerName` | "hyproxia" | Server name in response headers |
 | `TCPKeepalive` | true | Enable TCP keep-alive |
 | `TCPKeepalivePeriod` | 60s | TCP keep-alive probe interval |
+| `DisableStartupMessage` | false | Disable startup message |
 
 
 ## Adapters
