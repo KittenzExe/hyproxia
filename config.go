@@ -22,6 +22,7 @@ func DefaultConfig() Config {
 		MaxRequestBodySize:            10 * 1024 * 1024, // 10MB
 		TCPKeepalive:                  true,
 		TCPKeepalivePeriod:            60 * time.Second,
+		DisableStartupMessage:         false,
 	}
 }
 
@@ -73,6 +74,7 @@ func mergeConfig(def, custom Config) Config {
 	def.DisableHeaderNamesNormalizing = custom.DisableHeaderNamesNormalizing
 	def.DisablePathNormalizing = custom.DisablePathNormalizing
 	def.TCPKeepalive = custom.TCPKeepalive
+	def.DisableStartupMessage = custom.DisableStartupMessage
 
 	return def
 }
