@@ -3,7 +3,7 @@ package hyproxia
 import "time"
 
 func (p *Proxy) SetTraceHandler(handler func(*Trace)) {
-	if p.config.EnableTracing {
+	if !p.config.EnableTracing {
 		return
 	}
 	p.traceHandler = handler
