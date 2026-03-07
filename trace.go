@@ -16,10 +16,6 @@ func (p *Proxy) OnTrace(fn func(*Trace)) {
 	p.traceHandler = fn
 }
 
-func newTraceTimestamps() *traceTimestamps {
-	return &traceTimestamps{t0: time.Now()}
-}
-
 // buildTrace calculates trace timings and populates the Trace struct
 func buildTrace(ts traceTimestamps, ingest, outgoing string, t *Trace) {
 	total := ts.t3.Sub(ts.t0)

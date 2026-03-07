@@ -165,7 +165,7 @@ func (p *Proxy) handleHTTP(ctx *fasthttp.RequestCtx) {
 func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 	var ts traceTimestamps
 	if p.traceHandler != nil {
-		ts = *newTraceTimestamps() // t0
+		ts.t0 = time.Now() // t0
 	}
 
 	targetURL := p.buildTargetURL(ctx)
