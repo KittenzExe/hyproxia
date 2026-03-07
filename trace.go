@@ -3,7 +3,7 @@ package hyproxia
 import "time"
 
 func (p *Proxy) SetTraceHandler(handler func(*Trace)) {
-	if p.config.EnableTracing {
+	if !p.config.EnableTracing {
 		return
 	}
 	p.traceHandler = handler
@@ -14,10 +14,6 @@ func (p *Proxy) OnTrace(fn func(*Trace)) {
 		return
 	}
 	p.traceHandler = fn
-}
-
-func newTraceTimestamps() *traceTimestamps {
-	return &traceTimestamps{t0: time.Now()}
 }
 
 // buildTrace calculates trace timings and populates the Trace struct
