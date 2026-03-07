@@ -66,6 +66,26 @@ router.Route("/api/", hyproxia.New("https://api.example.com"))
 router.ListenTLS(":443", "cert.pem", "key.pem")
 ```
 
+## Tracing
+
+```go
+proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
+    EnableTracing: true,
+})
+
+proxy.OnTrace(func(t *hyproxia.Trace) {
+    fmt.Printf("ingest=%s outgoing=%s prep=%s upstream=%s write=%s total=%s overhead=%s\n",
+        t.IngestEndpoint(),
+        t.OutgoingEndpoint(),
+        t.PrepTime(),
+        t.UpstreamLatency(),
+        t.WriteTime(),
+        t.TotalDuration(),
+        t.ProxyOverhead(),
+    )
+})
+```
+
 ## Custom Configuration
 
 ```go
@@ -112,6 +132,7 @@ func main() {
 | `TCPKeepalive` | true | Enable TCP keep-alive |
 | `TCPKeepalivePeriod` | 60s | TCP keep-alive probe interval |
 | `DisableStartupMessage` | false | Disable startup message |
+| `EnableTracing` | false | Enable detailed request tracing |
 
 
 ## Adapters
