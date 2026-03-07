@@ -17,7 +17,7 @@ import (
 )
 
 // Version of current hyproxia
-const version = "0.1.0"
+const version = "0.1.3"
 
 // New creates a new proxy instance targeting the specified URL.
 // An optional config can be provided; otherwise, the DefaultConfig is used.
