@@ -11,6 +11,7 @@ package hyproxia
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/valyala/fasthttp"
 )
@@ -67,6 +68,13 @@ func New(targetURL string, config ...Config) *Proxy {
 				return &buf
 			},
 		},
+		tracePool: sync.Pool{New: func() any { return &Trace{} }},
+	}
+
+	if cfg.EnableTracing {
+		p.handle = p.handleHTTPTracing
+	} else {
+		p.handle = p.handleHTTP
 	}
 
 	p.server = &fasthttp.Server{
@@ -117,7 +125,7 @@ func (p *Proxy) Handler() fasthttp.RequestHandler {
 
 // HandleRequest processes incoming requests.
 func (p *Proxy) HandleRequest(ctx *fasthttp.RequestCtx) {
-	p.handleHTTP(ctx)
+	p.handle(ctx)
 }
 
 // buildTargetURL constructs the full upstream URL using the pool.
@@ -154,6 +162,48 @@ func (p *Proxy) handleHTTP(ctx *fasthttp.RequestCtx) {
 	}
 
 	resp.CopyTo(&ctx.Response)
+}
+
+// handleHTTPTracing forwards the request to the target server and writes the response back to the client with tracing.
+func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
+	var ts traceTimestamps
+	if p.traceHandler != nil {
+		ts = *newTraceTimestamps() // t0
+	}
+
+	targetURL := p.buildTargetURL(ctx)
+
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	ctx.Request.CopyTo(req)
+	req.SetRequestURI(targetURL)
+
+	if p.traceHandler != nil {
+		ts.t1 = time.Now() // t1
+	}
+
+	if err := p.doWithRedirects(req, resp, p.config.MaxRedirects); err != nil {
+		ctx.SetStatusCode(fasthttp.StatusBadGateway)
+		ctx.SetBodyString("Bad Gateway")
+		return
+	}
+
+	if p.traceHandler != nil {
+		ts.t2 = time.Now() // t2
+	}
+
+	resp.CopyTo(&ctx.Response)
+
+	if p.traceHandler != nil {
+		ts.t3 = time.Now() // t3
+		trace := p.tracePool.Get().(*Trace)
+		buildTrace(ts, ctx.LocalAddr().String(), targetURL, trace)
+		p.traceHandler(trace)
+		p.tracePool.Put(trace)
+	}
 }
 
 // doWithRedirects executes the request and follows redirects up to the maxRedirects

@@ -23,6 +23,7 @@ func DefaultConfig() Config {
 		TCPKeepalive:                  true,
 		TCPKeepalivePeriod:            60 * time.Second,
 		DisableStartupMessage:         false,
+		EnableTracing:                 false,
 	}
 }
 
@@ -75,6 +76,7 @@ func mergeConfig(def, custom Config) Config {
 	def.DisablePathNormalizing = custom.DisablePathNormalizing
 	def.TCPKeepalive = custom.TCPKeepalive
 	def.DisableStartupMessage = custom.DisableStartupMessage
+	def.EnableTracing = custom.EnableTracing
 
 	return def
 }
