@@ -131,18 +131,13 @@ func (p *Proxy) HandleRequest(ctx *fasthttp.RequestCtx) {
 }
 
 // buildTargetURL constructs the full upstream URL using the pool.
-func (p *Proxy) buildTargetURL(ctx *fasthttp.RequestCtx) string {
+func (p *Proxy) buildTargetURL(ctx *fasthttp.RequestCtx) []byte {
 	urlBytesPtr := p.urlPool.Get().(*[]byte)
 	urlBytes := (*urlBytesPtr)[:0]
-
 	urlBytes = append(urlBytes, p.target...)
 	urlBytes = append(urlBytes, ctx.RequestURI()...)
-	targetURL := string(urlBytes)
-
 	*urlBytesPtr = urlBytes
-	p.urlPool.Put(urlBytesPtr)
-
-	return targetURL
+	return urlBytes
 }
 
 // handleHTTP forwards the request to the target server and writes the response back to the client.
@@ -155,7 +150,7 @@ func (p *Proxy) handleHTTP(ctx *fasthttp.RequestCtx) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	ctx.Request.CopyTo(req)
-	req.SetRequestURI(targetURL)
+	req.SetRequestURIBytes(targetURL)
 
 	if err := p.doWithRedirects(req, resp, p.config.MaxRedirects); err != nil {
 		ctx.SetStatusCode(fasthttp.StatusBadGateway)
@@ -181,7 +176,7 @@ func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	ctx.Request.CopyTo(req)
-	req.SetRequestURI(targetURL)
+	req.SetRequestURIBytes(targetURL)
 
 	if p.traceHandler != nil {
 		ts.t1 = time.Now() // t1
@@ -202,7 +197,7 @@ func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 	if p.traceHandler != nil {
 		ts.t3 = time.Now() // t3
 		trace := p.tracePool.Get().(*Trace)
-		buildTrace(ts, ctx.LocalAddr().String(), targetURL, trace)
+		buildTrace(ts, ctx.LocalAddr().String(), string(targetURL), trace)
 		p.traceHandler(trace)
 		p.tracePool.Put(trace)
 	}
