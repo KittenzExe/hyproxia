@@ -9,6 +9,8 @@
 package hyproxia
 
 import (
+	"bytes"
+	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -17,7 +19,7 @@ import (
 )
 
 // Version of current hyproxia
-const version = "0.1.3"
+const version = "0.1.4"
 
 // New creates a new proxy instance targeting the specified URL.
 // An optional config can be provided; otherwise, the DefaultConfig is used.
@@ -208,6 +210,14 @@ func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 
 // doWithRedirects executes the request and follows redirects up to the maxRedirects
 func (p *Proxy) doWithRedirects(req *fasthttp.Request, resp *fasthttp.Response, maxRedirects int) error {
+	// Parse the allowed host once from the configured target.
+	allowedURI := fasthttp.AcquireURI()
+	defer fasthttp.ReleaseURI(allowedURI)
+	if err := allowedURI.Parse(nil, []byte(p.target)); err != nil {
+		return err
+	}
+	allowedHost := allowedURI.Host()
+
 	for i := 0; i <= maxRedirects; i++ {
 		if err := p.client.Do(req, resp); err != nil {
 			return err
@@ -221,6 +231,17 @@ func (p *Proxy) doWithRedirects(req *fasthttp.Request, resp *fasthttp.Response, 
 		location := resp.Header.Peek("Location")
 		if len(location) == 0 {
 			return nil
+		}
+
+		redirectURI := fasthttp.AcquireURI()
+		parseErr := redirectURI.Parse(nil, location)
+		redirectHost := redirectURI.Host()
+		fasthttp.ReleaseURI(redirectURI)
+		if parseErr != nil {
+			return errors.New("invalid redirect location!")
+		}
+		if len(redirectHost) > 0 && !bytes.Equal(redirectHost, allowedHost) {
+			return errors.New("redirect to disallowed host blocked!")
 		}
 
 		req.SetRequestURIBytes(location)
