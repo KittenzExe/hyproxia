@@ -83,6 +83,10 @@ type Config struct {
 	// DisableStartupMessage disables the startup message when the proxy starts.
 	// Default: false
 	DisableStartupMessage bool
+
+	// EnableTracing enables all tracing code in the request hot path.
+	// Default: false
+	EnableTracing bool
 }
 
 // Router handles multiple proxy routes
@@ -100,9 +104,35 @@ type SubRouter struct {
 
 // Proxy represents a reverse proxy instance
 type Proxy struct {
-	config  Config
-	target  string
-	client  *fasthttp.Client
-	server  *fasthttp.Server
-	urlPool *sync.Pool
+	config       Config
+	target       string
+	client       *fasthttp.Client
+	server       *fasthttp.Server
+	urlPool      *sync.Pool
+	tracePool    sync.Pool
+	traceHandler func(*Trace)
+	handle       func(*fasthttp.RequestCtx)
+}
+
+// Timestamps for tracing request processing stages
+// t0: handler start (request received)
+// t1: request sent to upstream
+// t2: response received from upstream
+// t3: response sent to client
+type traceTimestamps struct {
+	t0 time.Time
+	t1 time.Time
+	t2 time.Time
+	t3 time.Time
+}
+
+// Trace holds detailed timing information for a single request
+type Trace struct {
+	ingestEndpoint             string
+	outgoingEndpoint           string
+	timeToRequestToUpstream    time.Duration
+	timeToResponseFromUpstream time.Duration
+	timeToResponseFromProxy    time.Duration
+	timeToCompleteRequest      time.Duration
+	proxyProcessingTime        time.Duration
 }
