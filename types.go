@@ -124,6 +124,8 @@ type Proxy struct {
 	tracePool    sync.Pool
 	traceHandler func(*Trace)
 	handle       func(*fasthttp.RequestCtx)
+	workerID     int
+	workerPID    int
 }
 
 // Timestamps for tracing request processing stages
@@ -147,4 +149,6 @@ type Trace struct {
 	timeToResponseFromProxy    time.Duration
 	timeToCompleteRequest      time.Duration
 	proxyProcessingTime        time.Duration
+	workerID                   int
+	workerPID                  int
 }

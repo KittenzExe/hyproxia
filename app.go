@@ -211,7 +211,7 @@ func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 	if p.traceHandler != nil {
 		ts.t3 = time.Now() // t3
 		trace := p.tracePool.Get().(*Trace)
-		buildTrace(ts, ctx.LocalAddr().String(), string(targetURL), trace)
+		buildTrace(ts, ctx.LocalAddr().String(), string(targetURL), trace, p.workerID, p.workerPID)
 		p.traceHandler(trace)
 		p.tracePool.Put(trace)
 	}

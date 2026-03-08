@@ -14,6 +14,11 @@ import (
 
 func (p *Proxy) ListenPrefork(addr string) error {
 	if os.Getenv(preforkWorkerEnv) != "" {
+		// In worker process - set worker ID and PID for tracing
+		p.workerPID = os.Getpid()
+		workerIDStr := os.Getenv("HYPROXIA_WORKER_ID")
+		p.workerID, _ = strconv.Atoi(workerIDStr)
+
 		// Worker process - set GOMAXPROCS and serve
 		if p.config.PreforkGOMAXPROCS > 0 {
 			runtime.GOMAXPROCS(p.config.PreforkGOMAXPROCS)
@@ -55,6 +60,7 @@ func (p *Proxy) ListenPrefork(addr string) error {
 		cmd.Stderr = os.Stderr
 		cmd.Env = append(os.Environ(),
 			preforkWorkerEnv+"=1",
+			"HYPROXIA_WORKER_ID="+strconv.Itoa(i+1),
 			"GOMAXPROCS="+strconv.Itoa(maxProcs),
 		)
 		if err := cmd.Start(); err != nil {
