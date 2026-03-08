@@ -16,6 +16,7 @@ func NewSubRouter() *SubRouter {
 // Route adds a proxy for a specific subdomain.
 // Example:
 //
+//	router := hyproxia.NewSubRouter()
 //	router.Route("api", hyproxia.New("https://api-backend.example.com"))
 //	router.Route("auth", hyproxia.New("https://auth-backend.example.com"))
 func (r *SubRouter) Route(subdomain string, proxy *Proxy) {
