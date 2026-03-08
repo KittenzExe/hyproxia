@@ -87,6 +87,18 @@ type Config struct {
 	// EnableTracing enables all tracing code in the request hot path.
 	// Default: false
 	EnableTracing bool
+
+	// Prefork enables multiple worker processes for improved performance on multi-core systems.
+	// Default: false
+	Prefork bool
+
+	// PreforkProcesses is the number of child processes to spawn in prefork mode.
+	// Default: runtime.NumCPU()
+	PreforkProcesses int
+
+	// PreforkGOMAXPROCS sets GOMAXPROCS for each child process in prefork mode.
+	// Default: 2
+	PreforkGOMAXPROCS int
 }
 
 // Router handles multiple proxy routes
@@ -112,6 +124,8 @@ type Proxy struct {
 	tracePool    sync.Pool
 	traceHandler func(*Trace)
 	handle       func(*fasthttp.RequestCtx)
+	workerID     int
+	workerPID    int
 }
 
 // Timestamps for tracing request processing stages
@@ -126,7 +140,7 @@ type traceTimestamps struct {
 	t3 time.Time
 }
 
-// Trace holds detailed timing information for a single request
+// Trace holds detailed information per single request
 type Trace struct {
 	ingestEndpoint             string
 	outgoingEndpoint           string
@@ -135,4 +149,6 @@ type Trace struct {
 	timeToResponseFromProxy    time.Duration
 	timeToCompleteRequest      time.Duration
 	proxyProcessingTime        time.Duration
+	workerID                   int
+	workerPID                  int
 }

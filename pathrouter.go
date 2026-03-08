@@ -16,6 +16,7 @@ func NewPathRouter() *PathRouter {
 // Route adds a proxy for a specific path prefix.
 // Example:
 //
+//	router := hyproxia.NewPathRouter()
 //	router.Route("/api/", hyproxia.New("https://api.example.com"))
 //	router.Route("/auth/", hyproxia.New("https://auth.example.com"))
 func (r *PathRouter) Route(prefix string, proxy *Proxy) {

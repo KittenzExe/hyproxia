@@ -11,6 +11,7 @@ package hyproxia
 import (
 	"bytes"
 	"errors"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +21,8 @@ import (
 
 // Version of current hyproxia
 const version = "0.1.5"
+
+const preforkWorkerEnv = "HYPROXIA_PREFORK_WORKER"
 
 // New creates a new proxy instance targeting the specified URL.
 // An optional config can be provided; otherwise, the DefaultConfig is used.
@@ -32,6 +35,11 @@ const version = "0.1.5"
 //	proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
 //	    MaxConnsPerHost: 4096,
 //	    ReadTimeout:     30 * time.Second,
+//	})
+//
+//	// With Prefork enabled
+//	proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
+//	    Prefork: true,
 //	})
 func New(targetURL string, config ...Config) *Proxy {
 	cfg := DefaultConfig()
@@ -98,6 +106,17 @@ func New(targetURL string, config ...Config) *Proxy {
 //
 //	proxy.Listen(":8080")
 func (p *Proxy) Listen(addr string) error {
+	if p.config.Prefork {
+		if os.Getenv(preforkWorkerEnv) != "" {
+			return p.ListenPrefork(addr)
+		}
+		if !p.config.DisableStartupMessage {
+			startupMessage(addr)
+		}
+		return p.ListenPrefork(addr)
+	}
+
+	// Normal (non-prefork) path
 	if !p.config.DisableStartupMessage {
 		startupMessage(addr)
 	}
@@ -197,7 +216,7 @@ func (p *Proxy) handleHTTPTracing(ctx *fasthttp.RequestCtx) {
 	if p.traceHandler != nil {
 		ts.t3 = time.Now() // t3
 		trace := p.tracePool.Get().(*Trace)
-		buildTrace(ts, ctx.LocalAddr().String(), string(targetURL), trace)
+		buildTrace(ts, ctx.LocalAddr().String(), string(targetURL), trace, p.workerID, p.workerPID)
 		p.traceHandler(trace)
 		p.tracePool.Put(trace)
 	}
