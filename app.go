@@ -11,6 +11,7 @@ package hyproxia
 import (
 	"bytes"
 	"errors"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +21,8 @@ import (
 
 // Version of current hyproxia
 const version = "0.1.5"
+
+const preforkWorkerEnv = "HYPROXIA_PREFORK_WORKER"
 
 // New creates a new proxy instance targeting the specified URL.
 // An optional config can be provided; otherwise, the DefaultConfig is used.
@@ -98,6 +101,17 @@ func New(targetURL string, config ...Config) *Proxy {
 //
 //	proxy.Listen(":8080")
 func (p *Proxy) Listen(addr string) error {
+	if p.config.Prefork {
+		if os.Getenv(preforkWorkerEnv) != "" {
+			return p.ListenPrefork(addr)
+		}
+		if !p.config.DisableStartupMessage {
+			startupMessage(addr)
+		}
+		return p.ListenPrefork(addr)
+	}
+
+	// Normal (non-prefork) path
 	if !p.config.DisableStartupMessage {
 		startupMessage(addr)
 	}

@@ -87,6 +87,18 @@ type Config struct {
 	// EnableTracing enables all tracing code in the request hot path.
 	// Default: false
 	EnableTracing bool
+
+	// Prefork enables multiple worker processes for improved performance on multi-core systems.
+	// Default: false
+	Prefork bool
+
+	// PreforkProcesses is the number of child processes to spawn in prefork mode.
+	// Default: runtime.NumCPU()
+	PreforkProcesses int
+
+	// PreforkGOMAXPROCS sets GOMAXPROCS for each child process in prefork mode.
+	// Default: 2
+	PreforkGOMAXPROCS int
 }
 
 // Router handles multiple proxy routes

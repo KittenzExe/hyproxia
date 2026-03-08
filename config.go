@@ -24,6 +24,9 @@ func DefaultConfig() Config {
 		TCPKeepalivePeriod:            60 * time.Second,
 		DisableStartupMessage:         false,
 		EnableTracing:                 false,
+		Prefork:                       false,
+		PreforkProcesses:              0, // 0 means auto-detect based on CPU cores
+		PreforkGOMAXPROCS:             0, // 0 means use runtime.NumCPU()
 	}
 }
 
@@ -71,12 +74,19 @@ func mergeConfig(def, custom Config) Config {
 	if custom.TCPKeepalivePeriod != 0 {
 		def.TCPKeepalivePeriod = custom.TCPKeepalivePeriod
 	}
+	if custom.PreforkProcesses != 0 {
+		def.PreforkProcesses = custom.PreforkProcesses
+	}
+	if custom.PreforkGOMAXPROCS != 0 {
+		def.PreforkGOMAXPROCS = custom.PreforkGOMAXPROCS
+	}
 	// Booleans need explicit handling since false is valid
 	def.DisableHeaderNamesNormalizing = custom.DisableHeaderNamesNormalizing
 	def.DisablePathNormalizing = custom.DisablePathNormalizing
 	def.TCPKeepalive = custom.TCPKeepalive
 	def.DisableStartupMessage = custom.DisableStartupMessage
 	def.EnableTracing = custom.EnableTracing
+	def.Prefork = custom.Prefork
 
 	return def
 }
