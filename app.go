@@ -36,6 +36,11 @@ const preforkWorkerEnv = "HYPROXIA_PREFORK_WORKER"
 //	    MaxConnsPerHost: 4096,
 //	    ReadTimeout:     30 * time.Second,
 //	})
+//
+//	// With Prefork enabled
+//	proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
+//	    Prefork: true,
+//	})
 func New(targetURL string, config ...Config) *Proxy {
 	cfg := DefaultConfig()
 	if len(config) > 0 {

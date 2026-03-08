@@ -140,7 +140,7 @@ type traceTimestamps struct {
 	t3 time.Time
 }
 
-// Trace holds detailed timing information for a single request
+// Trace holds detailed information per single request
 type Trace struct {
 	ingestEndpoint             string
 	outgoingEndpoint           string
