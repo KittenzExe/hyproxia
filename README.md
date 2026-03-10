@@ -30,45 +30,47 @@ func main() {
 }
 ```
 
-## Route-Based Proxying
+By default, the proxy will forward all incoming requests to the targeted URL while preserving the original request path and query parameters.
 
-Route different paths to different backends:
+## Router Proxy
 
 ```go
-package main
-
-import "github.com/KittenzExe/hyproxia"
-
 func main() {
     router := hyproxia.NewRouter()
     defer router.Close()
-
-    router.Route("/api/", hyproxia.New("https://api.example.com"))
-    router.Route("/auth/", hyproxia.New("https://auth.example.com"))
-    router.Route("/static/", hyproxia.New("https://cdn.example.com"))
+    
+    // hyproxia.Path proxies requests from /api onward. (localhost:8080/api/endpoint -> https://api.example.com/endpoint)
+    router.Route(hyproxia.Path, "/api", hyproxia.New("https://api.example.com"))
+    // hyproxia.Sub proxies requests from the root of the subdomain. (auth.localhost:8080/endpoint -> https://auth.example.com/endpoint)
+    router.Route(hyproxia.Sub, "auth", hyproxia.New("https://auth.example.com"))
 
     router.Listen(":8080")
 }
 ```
 
-## TLS Support
+Both `hyproxia.Path` and `hyproxia.Sub` can be used to route requests based on path prefixes or subdomains, respectively. The router will match incoming requests against the registered routes and forward them to the appropriate backend proxy.
 
+Both are also not limited to only 1 instance per backend, so you can have multiple path or subdomain routes pointing to the same backend if needed.
+
+
+## TLS Support
 ```go
 // Single proxy
 proxy := hyproxia.New("https://api.example.com")
 defer proxy.Close()
 proxy.ListenWithTLS(":443", "cert.pem", "key.pem")
 
-// Router
+// Router proxy
 router := hyproxia.NewRouter()
 defer router.Close()
-router.Route("/api/", hyproxia.New("https://api.example.com"))
-router.ListenTLS(":443", "cert.pem", "key.pem")
+router.Route(hyproxia.Sub, "auth", hyproxia.New("https://auth.example.com"))
+router.ListenWithTLS(":443", "cert.pem", "key.pem")
 ```
 
 ## Tracing
 
 ```go
+// Single proxy
 proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
     EnableTracing: true,
 })
@@ -82,9 +84,27 @@ proxy.OnTrace(func(t *hyproxia.Trace) {
         t.WriteTime(),
         t.TotalDuration(),
         t.ProxyOverhead(),
+
+        // With Prefork (optionally):
+        t.WorkerID(),
+        t.WorkerPID(),
     )
 })
 ```
+
+Tracing is also supported in the router proxy, the exact same way as the single proxy.
+
+## Prefork (Only supported on single proxy)
+
+```go
+proxy := hyproxia.New("https://api.example.com", hyproxia.Config{
+    Prefork: true,
+})
+defer proxy.Close()
+proxy.Listen(":8080")
+```
+
+Prefork can have other config settings such as `PreforkProcesses` to control the number of worker processes, and `PreforkGOMAXPROCS` to control the GOMAXPROCS setting for each worker.
 
 ## Custom Configuration
 
@@ -133,6 +153,9 @@ func main() {
 | `TCPKeepalivePeriod` | 60s | TCP keep-alive probe interval |
 | `DisableStartupMessage` | false | Disable startup message |
 | `EnableTracing` | false | Enable detailed request tracing |
+| `Prefork` | false | Enable prefork mode for multi-core performance |
+| `PreforkProcesses` | Number of CPU cores | Number of worker processes in prefork mode |
+| `PreforkGOMAXPROCS` | 2 | GOMAXPROCS setting for each worker in prefork mode |
 
 
 ## Adapters
