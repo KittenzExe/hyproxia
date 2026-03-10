@@ -193,8 +193,8 @@ func (r *Router) Listen(addr string) error {
 	return r.server.ListenAndServe(addr)
 }
 
-// ListenTLS starts the router with TLS.
-func (r *Router) ListenTLS(addr, certFile, keyFile string) error {
+// ListenWithTLS starts the router with TLS.
+func (r *Router) ListenWithTLS(addr, certFile, keyFile string) error {
 	if !r.config.DisableStartupMessage {
 		startupMessage(addr, true)
 	}
