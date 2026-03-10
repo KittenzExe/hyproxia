@@ -101,17 +101,31 @@ type Config struct {
 	PreforkGOMAXPROCS int
 }
 
+// RouteType determines how a route is matched.
+type RouteType int
+
+const (
+	// Path matches requests by URL path prefix.
+	// Example: router.Route(Path, "/api/", proxy) -> proxyaddress.com/api/...
+	Path RouteType = iota
+
+	// Sub matches requests by subdomain.
+	// Example: router.Route(Sub, "api", proxy) -> api.proxyaddress.com/...
+	Sub
+)
+
+type route struct {
+	routeType RouteType
+	key       string // path prefix or subdomain
+	proxy     *Proxy
+}
+
 // Router handles multiple proxy routes
 type Router struct {
-	routes map[string]*Proxy
-}
-
-type PathRouter struct {
-	routes map[string]*Proxy
-}
-
-type SubRouter struct {
-	routes map[string]*Proxy
+	config       Config
+	routes       []route
+	server       *fasthttp.Server
+	traceHandler func(*Trace)
 }
 
 // Proxy represents a reverse proxy instance

@@ -128,8 +128,19 @@ func (p *Proxy) Listen(addr string) error {
 //
 //	proxy.ListenWithTLS(":443", "cert.pem", "key.pem")
 func (p *Proxy) ListenWithTLS(addr, certFile, keyFile string) error {
+	if p.config.Prefork {
+		if os.Getenv(preforkWorkerEnv) != "" {
+			return p.ListenPrefork(addr)
+		}
+		if !p.config.DisableStartupMessage {
+			startupMessage(addr)
+		}
+		return p.ListenPrefork(addr)
+	}
+
+	// Normal (non-prefork) path
 	if !p.config.DisableStartupMessage {
-		startupMessage(addr, true)
+		startupMessage(addr)
 	}
 	return p.server.ListenAndServeTLS(addr, certFile, keyFile)
 }
