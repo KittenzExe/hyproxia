@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/valyala/fasthttp v1.69.0
+	github.com/valyala/tcplisten v1.0.0
 )
 
 require (

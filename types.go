@@ -87,19 +87,45 @@ type Config struct {
 	// EnableTracing enables all tracing code in the request hot path.
 	// Default: false
 	EnableTracing bool
+
+	// Prefork enables multiple worker processes for improved performance on multi-core systems.
+	// Default: false
+	Prefork bool
+
+	// PreforkProcesses is the number of child processes to spawn in prefork mode.
+	// Default: runtime.NumCPU()
+	PreforkProcesses int
+
+	// PreforkGOMAXPROCS sets GOMAXPROCS for each child process in prefork mode.
+	// Default: 2
+	PreforkGOMAXPROCS int
+}
+
+// RouteType determines how a route is matched.
+type RouteType int
+
+const (
+	// Path matches requests by URL path prefix.
+	// Example: router.Route(Path, "/api/", proxy) -> proxyaddress.com/api/...
+	Path RouteType = iota
+
+	// Sub matches requests by subdomain.
+	// Example: router.Route(Sub, "api", proxy) -> api.proxyaddress.com/...
+	Sub
+)
+
+type route struct {
+	routeType RouteType
+	key       string // path prefix or subdomain
+	proxy     *Proxy
 }
 
 // Router handles multiple proxy routes
 type Router struct {
-	routes map[string]*Proxy
-}
-
-type PathRouter struct {
-	routes map[string]*Proxy
-}
-
-type SubRouter struct {
-	routes map[string]*Proxy
+	config       Config
+	routes       []route
+	server       *fasthttp.Server
+	traceHandler func(*Trace)
 }
 
 // Proxy represents a reverse proxy instance
@@ -112,6 +138,8 @@ type Proxy struct {
 	tracePool    sync.Pool
 	traceHandler func(*Trace)
 	handle       func(*fasthttp.RequestCtx)
+	workerID     int
+	workerPID    int
 }
 
 // Timestamps for tracing request processing stages
@@ -126,7 +154,7 @@ type traceTimestamps struct {
 	t3 time.Time
 }
 
-// Trace holds detailed timing information for a single request
+// Trace holds detailed information per single request
 type Trace struct {
 	ingestEndpoint             string
 	outgoingEndpoint           string
@@ -135,4 +163,6 @@ type Trace struct {
 	timeToResponseFromProxy    time.Duration
 	timeToCompleteRequest      time.Duration
 	proxyProcessingTime        time.Duration
+	workerID                   int
+	workerPID                  int
 }
