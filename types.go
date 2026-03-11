@@ -124,6 +124,7 @@ type route struct {
 type Router struct {
 	config       Config
 	routes       []route
+	routesMu     sync.RWMutex
 	server       *fasthttp.Server
 	traceHandler func(*Trace)
 }

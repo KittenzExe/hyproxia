@@ -57,11 +57,13 @@ func (r *Router) Route(routeType RouteType, key string, proxy *Proxy) {
 		key = strings.ToLower(key)
 	}
 
+	r.routesMu.Lock()
 	r.routes = append(r.routes, route{
 		routeType: routeType,
 		key:       key,
 		proxy:     proxy,
 	})
+	r.routesMu.Unlock()
 }
 
 // RemoveRoute removes a route matching the given type and key.
@@ -76,6 +78,8 @@ func (r *Router) RemoveRoute(routeType RouteType, key string) bool {
 		key = strings.ToLower(key)
 	}
 
+	r.routesMu.Lock()
+	defer r.routesMu.Unlock()
 	for i, rt := range r.routes {
 		if rt.routeType == routeType && rt.key == key {
 			rt.proxy.Close()
@@ -112,6 +116,7 @@ func (r *Router) HandleRequest(ctx *fasthttp.RequestCtx) {
 	var matchedType RouteType
 	matchedLen := 0
 
+	r.routesMu.RLock()
 	for _, rt := range r.routes {
 		switch rt.routeType {
 		case Path:
@@ -130,6 +135,7 @@ func (r *Router) HandleRequest(ctx *fasthttp.RequestCtx) {
 			}
 		}
 	}
+	r.routesMu.RUnlock()
 
 	if matchedProxy == nil {
 		ctx.SetStatusCode(fasthttp.StatusNotFound)
